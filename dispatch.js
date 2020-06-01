@@ -5,11 +5,11 @@ const orderCoffee = require('./orderCoffee');
 module.exports = (intentRequest, callback) => {
     console.log(`dispatch userId=${intentRequest.userId}, intentName=${intentRequest.currentIntent.name}`);
     const intentName = intentRequest.currentIntent.name;
-
-    if(intentName === 'CoffeeOrder') {
-        console.log(intentName + ' was called'); 
-        return orderCoffee(intentRequest, callback)   
+ 
+    if (intentName === 'CoffeeOrder') {
+      console.log(intentName + ' was called');
+      return orderCoffee(intentRequest, callback);
     }
-
-    throw new Error (`Intent with name ${intentName} not supported`);
-}
+ 
+    throw new Error(`Intent with name ${intentName} not supported`);
+  }

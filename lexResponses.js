@@ -1,4 +1,4 @@
-'use strict'
+'use strict';
 
 module.exports.delegate = (sessionAttributes, slots) => {
     return {
@@ -6,10 +6,9 @@ module.exports.delegate = (sessionAttributes, slots) => {
         dialogAction: {
             type: 'Delegate',
             slots,
-        }
-    }
+        },
+    };
 }
-
 
 module.exports.elicitSlot = (sessionAttributes, intentName, slots, slotToElicit, message) => {
     return {
@@ -20,6 +19,6 @@ module.exports.elicitSlot = (sessionAttributes, intentName, slots, slotToElicit,
             slots,
             slotToElicit,
             message,
-        }
+        },
     };
 }
