@@ -9,3 +9,17 @@ module.exports.delegate = (sessionAttributes, slots) => {
         }
     }
 }
+
+
+module.exports.elicitSlot = (sessionAttributes, intentName, slots, slotToElicit, message) => {
+    return {
+        sessionAttributes,
+        dialogAction: {
+            type: 'ElicitSlot',
+            intentName,
+            slots,
+            slotToElicit,
+            message,
+        }
+    };
+}
