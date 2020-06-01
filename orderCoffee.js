@@ -66,7 +66,14 @@
        callback(lexResponses.elicitSlot(intentRequest.sessionAttributes, intentRequest.currentIntent.name, slots, validationResult.violatedSlot, validationResult.message));
        return;
      }
-     
+
+
+     //If size is not define then set it as normal
+     if (coffeeSize == null) {
+       intentRequest.currentIntent.slots.size = 'normal';
+     }
+     console.log(intentRequest.currentIntent.slots);
+
      callback(lexResponses.delegate(intentRequest.sessionAttributes, intentRequest.currentIntent.slots));
      return;
    }
