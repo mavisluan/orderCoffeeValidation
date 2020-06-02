@@ -50,6 +50,14 @@ const validateCoffeeOrder = (coffeeType, coffeeSize) => {
   return buildValidationResult(true, null, null);
 }
 
+const buildFulfillmentResult = (fulfillmentState, messageContent) =>{
+  return {
+    fulfillmentState,
+    message: {contentType: 'PlainText', content: messageContent}
+  }
+}
+
+
 module.exports = (intentRequest, callback) => {
   const coffeeType = intentRequest.currentIntent.slots.coffee;
   const coffeeSize = intentRequest.currentIntent.slots.size;
@@ -70,9 +78,9 @@ module.exports = (intentRequest, callback) => {
 
 
     //If size is not define then set it as normal
-    if (coffeeSize == null) {
-      intentRequest.currentIntent.slots.size = 'normal';
-    }
+    // if (coffeeSize == null) {
+    //   intentRequest.currentIntent.slots.size = 'normal';
+    // }
     console.log(intentRequest.currentIntent.slots);
 
     callback(lexResponses.delegate(intentRequest.sessionAttributes, intentRequest.currentIntent.slots));
@@ -82,6 +90,8 @@ module.exports = (intentRequest, callback) => {
   if (source === 'FulfillmentCodeHook') {
     console.log('FulfillmentCodeHook');
 
-    callback(lexResponses.close(intentRequest.sessionAttributes, 'Fulfilled', {contentType: 'PlainText', content: 'Order was placed'}));
+    const {fulfillmentState, message} = buildFulfillmentResult('Fulfilled', `Your order of a ${coffeeSize} ${coffeeType} was placed. Is there anything else I can help you today?`)
+
+    callback(lexResponses.close(intentRequest.sessionAttributes, fulfillmentState, message));
   }
 }
