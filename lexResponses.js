@@ -22,3 +22,14 @@ module.exports.elicitSlot = (sessionAttributes, intentName, slots, slotToElicit,
         },
     };
 }
+
+module.exports.close = (sessionAttributes, fulfillmentState, message) => {
+    return {
+        sessionAttributes,
+        dialogAction: {
+            type: 'Close',
+            fulfillmentState,
+            message,
+        },
+    }
+}
