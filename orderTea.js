@@ -2,7 +2,8 @@
 
 const lexResponses = require('./lexResponses');
 
-const types = ['chai', 'chailatte', 'greentea', 'jasminetea', 'honeylemontea'];
+const types = ['chai', 'chai latte', 'green tea', 'jasmine tea', 'honey lemon tea'];
+const sizes = ['normal', 'large'];
 
 const buildValidationResult = (isValid, violatedSlot, messageContent) => {
   if (messageContent == null) {
@@ -18,14 +19,13 @@ const buildValidationResult = (isValid, violatedSlot, messageContent) => {
   };
 }
 
-const validateTeaOrder = (teaType) => {
-  const cleanedTeaType = (teaType) => {
-    var reg = new RegExp("[ ]+","g");
-    return teaType.replace(reg, "").toLowerCase()
+const validateTeaOrder = (teaType, teaSize) => {
+  if (teaType && types.indexOf(teaType) === -1) {
+    return buildValidationResult(false, 'tea', `We do not have ${teaType}, would you like a different type of tea?  Our most popular tea is honey lemon tea.`);
   }
 
-  if (teaType && types.indexOf(cleanedTeaType(teaType) === -1)) {
-    return buildValidationResult(false, 'tea', `We do not have ${teaType}, would you like a different type of tea?  Our most popular tea is honey lemon tea.`);
+  if (teaSize && sizes.indexOf(teaSize.toLowerCase()) === -1) {
+    return buildValidationResult(false, 'teaSize', `We do not have ${teaSize}, would you like a different size of tea? Our most popular size is large.`);
   }
 
   return buildValidationResult(true, null, null);
@@ -41,13 +41,15 @@ const buildFulfillmentResult = (fulfillmentState, messageContent) =>{
 
 module.exports = (intentRequest, callback) => {
   const teaType = intentRequest.currentIntent.slots.tea;
-  console.log('currentIntentSlots', teaType );
+  const teaSize = intentRequest.currentIntent.slots.teaSize;
+
+  console.log('currentIntentSlots', teaType + ' ' + teaSize );
 
   const source = intentRequest.invocationSource;
 
   if (source === 'DialogCodeHook') {
     const slots = intentRequest.currentIntent.slots;
-    const validationResult = validateTeaOrder(teaType);
+    const validationResult = validateTeaOrder(teaType, teaSize);
 
     if (!validationResult.isValid) { 
       slots[`${validationResult.violatedSlot}`] = null; // set violatedSlot value to be null
@@ -57,7 +59,7 @@ module.exports = (intentRequest, callback) => {
       return;
     }
 
-    if (teaType !== null) intentRequest.sessionAttributes['Price'] = cleanedTeaType.length;
+    if (teaType !== null) intentRequest.sessionAttributes['Price'] = (teaType.length / 3).toFixed(2);
 
     callback(lexResponses.delegate(intentRequest.sessionAttributes, intentRequest.currentIntent.slots));
     return;
