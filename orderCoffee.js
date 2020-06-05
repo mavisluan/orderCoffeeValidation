@@ -61,7 +61,7 @@ const buildFulfillmentResult = (fulfillmentState, messageContent) =>{
 module.exports = (intentRequest, callback) => {
   const coffeeType = intentRequest.currentIntent.slots.coffee;
   const coffeeSize = intentRequest.currentIntent.slots.size;
-  console.log(coffeeType + ' ' + coffeeSize);
+  console.log('currentIntentSlots', coffeeType + ' ' + coffeeSize);
 
   const source = intentRequest.invocationSource;
 
@@ -72,16 +72,12 @@ module.exports = (intentRequest, callback) => {
     if (!validationResult.isValid) { 
       slots[`${validationResult.violatedSlot}`] = null; // set violatedSlot value to be null
       // ask for the violatedSlot input again
+      console.log('Input NOT valid, elicit the violated slot again')
       callback(lexResponses.elicitSlot(intentRequest.sessionAttributes, intentRequest.currentIntent.name, slots, validationResult.violatedSlot, validationResult.message));
       return;
     }
 
-
-    //If size is not define then set it as normal
-    // if (coffeeSize == null) {
-    //   intentRequest.currentIntent.slots.size = 'normal';
-    // }
-    console.log(intentRequest.currentIntent.slots);
+    if (coffeeType !== null) intentRequest.sessionAttributes['Price'] = coffeeType.length;
 
     callback(lexResponses.delegate(intentRequest.sessionAttributes, intentRequest.currentIntent.slots));
     return;
@@ -90,7 +86,7 @@ module.exports = (intentRequest, callback) => {
   if (source === 'FulfillmentCodeHook') {
     console.log('FulfillmentCodeHook');
 
-    const {fulfillmentState, message} = buildFulfillmentResult('Fulfilled', `Your order of a ${coffeeSize} ${coffeeType} was placed. Is there anything else I can help you today?`)
+    const {fulfillmentState, message} = buildFulfillmentResult('Fulfilled', `Your order of a ${coffeeSize} ${coffeeType} is placed. Your total cost will be $${intentRequest.sessionAttributes['Price']}. Thank you!`)
 
     callback(lexResponses.close(intentRequest.sessionAttributes, fulfillmentState, message));
   }
