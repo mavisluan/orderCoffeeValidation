@@ -13,7 +13,6 @@ module.exports.delegate = (sessionAttributes, slots) => {
 
 module.exports.elicitSlot = (sessionAttributes, intentName, slots, slotToElicit, message) => {
     console.log('elicitSlot-- slots', slots)
-
     return {
         sessionAttributes,
         dialogAction: {

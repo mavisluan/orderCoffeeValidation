@@ -59,6 +59,7 @@ const buildFulfillmentResult = (fulfillmentState, messageContent) =>{
 
 
 module.exports = (intentRequest, callback) => {
+  console.log('sessionAttributes', intentRequest.sessionAttributes)
   const coffeeType = intentRequest.currentIntent.slots.coffee;
   const coffeeSize = intentRequest.currentIntent.slots.size;
   console.log('currentIntentSlots', coffeeType + ' ' + coffeeSize);
@@ -77,6 +78,7 @@ module.exports = (intentRequest, callback) => {
       return;
     }
 
+
     if (coffeeType !== null) intentRequest.sessionAttributes['Price'] = coffeeType.length;
 
     callback(lexResponses.delegate(intentRequest.sessionAttributes, intentRequest.currentIntent.slots));
@@ -86,7 +88,7 @@ module.exports = (intentRequest, callback) => {
   if (source === 'FulfillmentCodeHook') {
     console.log('FulfillmentCodeHook');
 
-    const {fulfillmentState, message} = buildFulfillmentResult('Fulfilled', `Your order of a ${coffeeSize} ${coffeeType} is placed. Your total cost will be $${intentRequest.sessionAttributes['Price']}. Thank you!`)
+    const {fulfillmentState, message} = buildFulfillmentResult('Fulfilled', `Your order of a ${coffeeSize} ${coffeeType} is placed. Your total will be $${ intentRequest.sessionAttributes['Price']}.00. Thank you!`)
 
     callback(lexResponses.close(intentRequest.sessionAttributes, fulfillmentState, message));
   }
