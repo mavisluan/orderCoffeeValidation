@@ -68,7 +68,7 @@ module.exports = (intentRequest, callback) => {
   if (source === 'FulfillmentCodeHook') {
     console.log('FulfillmentCodeHook');
 
-    const {fulfillmentState, message} = buildFulfillmentResult('Fulfilled', `Your order of a ${teaType} is placed. Your total will be $${intentRequest.sessionAttributes['Price']}. Is there anything else I can order for you? You can `)
+    const {fulfillmentState, message} = buildFulfillmentResult('Fulfilled', `Your order of a ${teaType} is placed. Your total will be $${intentRequest.sessionAttributes['Price']}. You can continue with your request choose 'close' to close the chat.`)
 
     callback(lexResponses.close(intentRequest.sessionAttributes, fulfillmentState, message));
   }

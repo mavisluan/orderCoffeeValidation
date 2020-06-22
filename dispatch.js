@@ -4,6 +4,7 @@ const orderCoffee = require('./orderCoffee');
 const orderTea = require('./orderTea');
 const orderPizza = require('./orderPizza');
 const talk = require('./talk');
+const close = require('./close');
 
 module.exports = (intentRequest, callback) => {
     console.log(`dispatch userId=${intentRequest.userId}, intentName=${intentRequest.currentIntent.name}`);
@@ -27,6 +28,11 @@ module.exports = (intentRequest, callback) => {
     if (intentName === 'Representative') {
       console.log(intentName + ' was called');
       return talk(intentRequest, callback);
+    }
+
+    if (intentName === 'Close') {
+      console.log(intentName + ' was called');
+      return close(intentRequest, callback);
     }
     throw new Error(`Intent with name ${intentName} not supported`);
   }
