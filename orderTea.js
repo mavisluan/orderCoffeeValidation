@@ -1,25 +1,10 @@
 'use strict';
 
 const lexResponses = require('./lexResponses');
-
-const types = ['chai', 'chai latte', 'green tea', 'jasmine tea', 'honey lemon tea'];
-const sizes = ['normal', 'large'];
-
-const buildValidationResult = (isValid, violatedSlot, messageContent) => {
-  if (messageContent == null) {
-      return {
-          isValid,
-          violatedSlot,
-      };
-  }
-  return {
-      isValid,
-      violatedSlot,
-      message: { contentType: 'PlainText', content: messageContent },
-  };
-}
-
-const validateTeaOrder = (teaType, teaSize) => {
+const { getProductInfo} = require('./dbClient');
+const {buildValidationResult, buildFulfillmentResult} = require('./buildHelper');
+getProductInfo('teaTypes', 'teaTypes')
+const validateTeaOrder = (teaType, teaSize, types, sizes) => {
   if (teaType && types.indexOf(teaType) === -1) {
     return buildValidationResult(false, 'tea', `We do not have ${teaType}, would you like a different type of tea?  Our most popular tea is honey lemon tea.`);
   }
@@ -31,25 +16,19 @@ const validateTeaOrder = (teaType, teaSize) => {
   return buildValidationResult(true, null, null);
 }
 
-const buildFulfillmentResult = (fulfillmentState, messageContent) =>{
-  return {
-    fulfillmentState,
-    message: {contentType: 'PlainText', content: messageContent}
-  }
-}
-
-
-module.exports = (intentRequest, callback) => {
+module.exports = async (intentRequest, callback) => {
   const teaType = intentRequest.currentIntent.slots.tea;
   const teaSize = intentRequest.currentIntent.slots.teaSize;
 
   console.log('currentIntentSlots', teaType + ' ' + teaSize );
 
+  const types = await getProductInfo('teaTypes', 'teaTypes');
+  const sizes = await getProductInfo('teaSizes', 'teaSizes');
   const source = intentRequest.invocationSource;
 
   if (source === 'DialogCodeHook') {
     const slots = intentRequest.currentIntent.slots;
-    const validationResult = validateTeaOrder(teaType, teaSize);
+    const validationResult = validateTeaOrder(teaType, teaSize, types, sizes);
 
     if (!validationResult.isValid) { 
       slots[`${validationResult.violatedSlot}`] = null; // set violatedSlot value to be null
@@ -59,7 +38,8 @@ module.exports = (intentRequest, callback) => {
       return;
     }
 
-    if (teaType !== null) intentRequest.sessionAttributes['Price'] = (teaType.length / 3).toFixed(2);
+    const price = (teaType && teaSize) ? await getProductInfo(teaType, teaSize): undefined;
+    if (teaType !== null && price !== undefined) intentRequest.sessionAttributes['Price'] = price.toFixed(2);
 
     callback(lexResponses.delegate(intentRequest.sessionAttributes, intentRequest.currentIntent.slots));
     return;

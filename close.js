@@ -1,12 +1,7 @@
 'use strict';
 
 const lexResponses = require('./lexResponses');
-const buildFulfillmentResult = (fulfillmentState, messageContent) =>{
-  return {
-    fulfillmentState,
-    message: {contentType: 'PlainText', content: messageContent}
-  }
-}
+const { buildFulfillmentResult } = require('./buildHelper');
 
 module.exports = (intentRequest, callback) => {
   const source = intentRequest.invocationSource;

@@ -1,26 +1,10 @@
 'use strict';
 
 const lexResponses = require('./lexResponses');
+const { getProductInfo} = require('./dbClient');
+const { buildValidationResult, buildFulfillmentResult } = require('./buildHelper');
 
-const types = ['veg', 'cheese', 'pepperoni'];
-const sizes = ['small', 'medium', 'large'];
-const crusts = ['thin', 'thick'];
-
-const buildValidationResult = (isValid, violatedSlot, messageContent) => {
-  if (messageContent == null) {
-      return {
-          isValid,
-          violatedSlot,
-      };
-  }
-  return {
-      isValid,
-      violatedSlot,
-      message: { contentType: 'PlainText', content: messageContent },
-  };
-}
-
-const validatePizzaOrder = (pizzaType, pizzaSize, pizzaCrust) => {
+const validatePizzaOrder = (pizzaType, pizzaSize, pizzaCrust, types, sizes, crusts) => {
   if (pizzaType && types.indexOf(pizzaType) === -1) {
     return buildValidationResult(false, 'pizza', `We do not have ${pizzaType}, would you like a different type of pizza?  Our most popular pizza is pepperoni.`);
   }
@@ -37,18 +21,14 @@ const validatePizzaOrder = (pizzaType, pizzaSize, pizzaCrust) => {
   return buildValidationResult(true, null, null);
 }
 
-const buildFulfillmentResult = (fulfillmentState, messageContent) =>{
-  return {
-    fulfillmentState,
-    message: {contentType: 'PlainText', content: messageContent}
-  }
-}
-
-
-module.exports = (intentRequest, callback) => {
+module.exports = async (intentRequest, callback) => {
   const pizzaType = intentRequest.currentIntent.slots.pizza;
   const pizzaCrust = intentRequest.currentIntent.slots.crust;
   const pizzaSize = intentRequest.currentIntent.slots.pizzaSize;
+
+  const types = await getProductInfo('pizzaTypes', 'pizzaTypes');
+  const sizes = await getProductInfo('pizzaSizes', 'pizzaSizes');
+  const crusts = await getProductInfo('pizzaCrusts', 'pizzaCrusts');
   
   console.log('currentIntentSlots', pizzaType + ' ' + pizzaCrust + ' ' + pizzaSize );
 
@@ -56,7 +36,7 @@ module.exports = (intentRequest, callback) => {
 
   if (source === 'DialogCodeHook') {
     const slots = intentRequest.currentIntent.slots;
-    const validationResult = validatePizzaOrder(pizzaType, pizzaSize, pizzaCrust);
+    const validationResult = validatePizzaOrder(pizzaType, pizzaSize, pizzaCrust, types, sizes, crusts);
 
     if (!validationResult.isValid) { 
       slots[`${validationResult.violatedSlot}`] = null; // set violatedSlot value to be null

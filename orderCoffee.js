@@ -1,25 +1,9 @@
 'use strict';
-
 const lexResponses = require('./lexResponses');
+const { getProductInfo} = require('./dbClient');
+const { buildValidationResult, buildFulfillmentResult } = require('./buildHelper');
 
-const types = ['latte', 'americano', 'cappuccino', 'espresso'];
-const sizes = ['double', 'normal', 'large'];
-
-const buildValidationResult = (isValid, violatedSlot, messageContent) => {
-  if (messageContent == null) {
-      return {
-          isValid,
-          violatedSlot,
-      };
-  }
-  return {
-      isValid,
-      violatedSlot,
-      message: { contentType: 'PlainText', content: messageContent },
-  };
-}
-
-const validateCoffeeOrder = (coffeeType, coffeeSize) => {
+const validateCoffeeOrder = (coffeeType, coffeeSize, types, sizes) => {
   if (coffeeType && types.indexOf(coffeeType.toLowerCase()) === -1) {
     return buildValidationResult(false, 'coffee', `We do not have ${coffeeType}, would you like a different type of coffee?  Our most popular coffee is americano.`);
   }
@@ -50,25 +34,20 @@ const validateCoffeeOrder = (coffeeType, coffeeSize) => {
   return buildValidationResult(true, null, null);
 }
 
-const buildFulfillmentResult = (fulfillmentState, messageContent) =>{
-  return {
-    fulfillmentState,
-    message: {contentType: 'PlainText', content: messageContent}
-  }
-}
-
-
-module.exports = (intentRequest, callback) => {
+module.exports = async (intentRequest, callback) => {
   console.log('sessionAttributes', intentRequest.sessionAttributes)
   const coffeeType = intentRequest.currentIntent.slots.coffee;
   const coffeeSize = intentRequest.currentIntent.slots.size;
   console.log('currentIntentSlots', coffeeType + ' ' + coffeeSize);
+  
+  const types = await getProductInfo('coffeeTypes', 'coffeeTypes');
+  const sizes = await getProductInfo('coffeeSizes', 'coffeeSizes');
 
   const source = intentRequest.invocationSource;
 
   if (source === 'DialogCodeHook') {
     const slots = intentRequest.currentIntent.slots;
-    const validationResult = validateCoffeeOrder(coffeeType, coffeeSize);
+    const validationResult = validateCoffeeOrder(coffeeType, coffeeSize, types, sizes);
 
     if (!validationResult.isValid) { 
       slots[`${validationResult.violatedSlot}`] = null; // set violatedSlot value to be null
@@ -78,8 +57,8 @@ module.exports = (intentRequest, callback) => {
       return;
     }
 
-
-    if (coffeeType !== null) intentRequest.sessionAttributes['Price'] = coffeeType.length;
+    const price = (coffeeType && coffeeSize) ? await getProductInfo(coffeeType, coffeeSize): undefined;
+    if (coffeeType !== null && price !== undefined) intentRequest.sessionAttributes['Price'] = price.toFixed(2);
 
     callback(lexResponses.delegate(intentRequest.sessionAttributes, intentRequest.currentIntent.slots));
     return;
@@ -88,7 +67,7 @@ module.exports = (intentRequest, callback) => {
   if (source === 'FulfillmentCodeHook') {
     console.log('FulfillmentCodeHook');
 
-    const {fulfillmentState, message} = buildFulfillmentResult('Fulfilled', `Your order of a ${coffeeSize} ${coffeeType} is placed. Your total will be $${ intentRequest.sessionAttributes['Price']}.00. You can continue with your request or type 'close' to close the chat.`)
+    const {fulfillmentState, message} = buildFulfillmentResult('Fulfilled', `Your order of a ${coffeeSize} ${coffeeType} is placed. Your total will be $${ intentRequest.sessionAttributes['Price']}. You can continue with your request or type 'close' to close the chat.`)
 
     callback(lexResponses.close(intentRequest.sessionAttributes, fulfillmentState, message));
   }
