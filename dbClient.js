@@ -2,6 +2,7 @@
 
 const AWS = require('aws-sdk');
 const {region, accessKeyId, secretAccessKey} = require('./config');
+const { v4: uuidv4 } = require('uuid');
 
 AWS.config.update({
   region,
@@ -26,4 +27,34 @@ const getProductInfo = (orderKey, itemKey) => {
     })
   })
 }
-module.exports = { dbClient, getProductInfo };
+
+const saveOrderToDB = ({type='', size='', price='', userId='', crust=''}) => {
+  const orderId = "order-" + uuidv4();
+  const item = {
+    orderKey: orderId,
+    name: type,
+    size,
+    price, 
+    userId,
+    crust
+  };
+ 
+  console.log('item', item)
+  const params = {
+    TableName: "order-dev",
+    Item: item
+  };
+
+  return new Promise((resolve, reject) => {
+    dbClient.put(params, (err, data) => {
+      if (err) {
+        reject(err);
+      } else {
+        console.log( 'save the item', item)
+        resolve(item);
+      }
+    })
+  })
+}
+
+module.exports = { dbClient, getProductInfo, saveOrderToDB };

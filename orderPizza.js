@@ -1,7 +1,7 @@
 'use strict';
 
 const lexResponses = require('./lexResponses');
-const { getProductInfo} = require('./dbClient');
+const { getProductInfo, saveOrderToDB } = require('./dbClient');
 const { buildValidationResult, buildFulfillmentResult } = require('./buildHelper');
 
 const validatePizzaOrder = (pizzaType, pizzaSize, pizzaCrust, types, sizes, crusts) => {
@@ -59,7 +59,10 @@ module.exports = async (intentRequest, callback) => {
   if (source === 'FulfillmentCodeHook') {
     console.log('FulfillmentCodeHook');
 
-    const {fulfillmentState, message} = buildFulfillmentResult('Fulfilled', `Your order of a ${pizzaSize} ${pizzaCrust} ${pizzaType} is placed. Your total will be $${intentRequest.sessionAttributes['Price']}. You can continue with your request or type 'close' to close the chat.`)
+    const cost = intentRequest.sessionAttributes['Price'];
+    await saveOrderToDB({type: pizzaType, size: pizzaSize, crust: pizzaCrust, price: cost, userId: intentRequest.userId});
+
+    const {fulfillmentState, message} = buildFulfillmentResult('Fulfilled', `Your order of a ${pizzaSize} ${pizzaCrust} ${pizzaType} is placed. Your total will be $${cost}. You can continue with your request or type 'close' to close the chat.`)
 
     callback(lexResponses.close(intentRequest.sessionAttributes, fulfillmentState, message));
   }
